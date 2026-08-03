@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+/* --- LIGHT (herbarium paper) — default when no class applied ---------- */
+:root,
+:root.light {
+  --ink-950: 245 240 226;   /* page — warm parchment */
+  --ink-900: 234 227 205;   /* card surface */
+  --ink-800: 220 210 184;
+  --ink-700: 200 190 165;   /* borders / dividers */
+
+  --parchment-100: 20 30 24;    /* primary text — deep ink */
+  --parchment-200: 45 60 48;
+
+  --moss-300: 143 191 107;
+  --moss-400: 107 155 87;
+  --moss-500: 76 122 68;   /* deepen for contrast on light */
+  --moss-600: 60 96 54;
+  --moss-700: 44 72 40;
+
+  --ochre-300: 232 199 133;
+  --ochre-400: 212 162 76;
+  --ochre-500: 181 130 52;  /* deepened for text-on-light */
+  --ochre-600: 138 96 34;
+
+  --rust-400: 181 83 60;
+  --rust-500: 147 65 46;
+  --rust-600: 110 46 32;
+}
+
+/* --- DARK (botanical ledger) — the original direction ---------------- */
+:root.dark {
+  --ink-950: 13 23 18;
+  --ink-900: 19 32 25;
+  --ink-800: 27 43 34;
+  --ink-700: 38 57 45;
+
+  --parchment-100: 237 230 214;
+  --parchment-200: 220 210 184;
+
+  --moss-300: 168 208 138;
+  --moss-400: 143 191 107;
+  --moss-500: 107 155 87;
+  --moss-600: 76 122 68;
+  --moss-700: 55 90 50;
+
+  --ochre-300: 232 199 133;
+  --ochre-400: 224 177 92;
+  --ochre-500: 212 162 76;
+  --ochre-600: 181 130 52;
+
+  --rust-400: 201 114 86;
+  --rust-500: 181 83 60;
+  --rust-600: 147 65 46;
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+  body {
+    @apply bg-ink-950 text-parchment-100 font-body antialiased;
+    background-image:
+      radial-gradient(1000px 600px at 90% -10%, rgb(var(--moss-500) / 0.08), transparent 60%),
+      radial-gradient(800px 500px at -10% 40%, rgb(var(--ochre-500) / 0.06), transparent 60%);
+    background-attachment: fixed;
+  }
+  h1, h2, h3 {
+    @apply font-display;
+  }
+  ::selection {
+    background: rgb(var(--moss-500) / 0.35);
+  }
+}
+
+@layer components {
+  /* Signature element: herbarium specimen label */
+  .specimen-label {
+    @apply relative border border-ochre-500/40 bg-ink-900/70 rounded-label
+           p-5 backdrop-blur-sm shadow-sm;
+  }
+  .specimen-label::before {
+    content: "";
+    @apply absolute top-3 left-3 right-3 h-px bg-ochre-500/30;
+  }
+  .stamp {
+    @apply inline-flex items-center gap-1 border border-ochre-500 text-ochre-500
+           dark:text-ochre-400 text-xs uppercase tracking-wider px-2 py-0.5 rounded-label;
+  }
+  .stamp-moss {
+    @apply border-moss-500 text-moss-500 dark:text-moss-400;
+  }
+  .stamp-severe {
+    @apply border-rust-500 text-rust-500 dark:text-rust-400;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-ochre-500 text-stamp
+           font-semibold rounded-label px-6 py-3 transition-all
+           hover:bg-ochre-400 hover:shadow-[0_0_0_4px_rgb(var(--ochre-500)/0.15)]
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-moss {
+    @apply inline-flex items-center justify-center gap-2 bg-moss-500 text-stamp
+           font-semibold rounded-label px-6 py-3 transition-all
+           hover:bg-moss-400 hover:shadow-[0_0_0_4px_rgb(var(--moss-500)/0.15)]
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 text-parchment-100/80 hover:text-parchment-100
+           border border-ink-700 hover:border-moss-500/60 rounded-label px-4 py-2.5 transition-colors;
+  }
+
+  .input-field {
+    @apply bg-ink-950/60 border border-ink-700 rounded-label px-3.5 py-3
+           text-parchment-100 min-h-11 w-full transition-colors;
+  }
+  .input-field:focus {
+    @apply outline-none border-ochre-500/70;
+  }
+
+  /* Growing vine underline — pairs with hero headlines */
+  .vine-underline {
+    background-image: linear-gradient(90deg,
+      rgb(var(--moss-500)) 0%, rgb(var(--moss-500)) 50%, transparent 50%);
+    background-size: 200% 2px;
+    background-repeat: no-repeat;
+    background-position: 100% 100%;
+    padding-bottom: 6px;
+  }
+  .vine-underline.grown {
+    background-position: 0 100%;
+    transition: background-position 1.2s ease-out;
+  }
+}
