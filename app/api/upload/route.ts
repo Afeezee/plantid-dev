@@ -7,9 +7,11 @@ import path from "node:path";
 // (type/size) happens in ImageUploader.tsx; this route persists the blob
 // and returns its public URL.
 //
-// Dev fallback: when BLOB_READ_WRITE_TOKEN is not set (e.g. before you've
-// created a Vercel Blob store), we write to public/uploads/ so the local
-// dev flow works end-to-end. Production must have the token.
+// Storage strategy:
+//  - Prod (or anywhere BLOB_READ_WRITE_TOKEN is set): Vercel Blob.
+//  - Local dev with no token: write to public/uploads/ so the flow works.
+// The disk fallback is explicitly refused on Vercel's serverless runtime
+// because /var/task is read-only — writing there fails with ENOENT.
 export async function POST(req: NextRequest) {
   const userId = await requireUser();
   const form = await req.formData();
@@ -22,11 +24,27 @@ export async function POST(req: NextRequest) {
   try {
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       const { put } = await import("@vercel/blob");
-      const blob = await put(objectKey, file, { access: "public" });
+      const blob = await put(objectKey, file, {
+        access: "public",
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
       return NextResponse.json({ url: blob.url });
     }
 
-    // Local dev — save to public/uploads/<objectKey>
+    // No Blob token — hard fail on any serverless / prod runtime, since disk
+    // writes there are ephemeral at best and fatal at worst (/var/task ENOENT).
+    const isServerless = !!process.env.VERCEL || process.env.NODE_ENV === "production";
+    if (isServerless) {
+      return NextResponse.json(
+        {
+          error:
+            "Blob storage is not configured. Set BLOB_READ_WRITE_TOKEN in the project's environment variables (Vercel → Storage → connect a Blob store to auto-provision it) and redeploy.",
+        },
+        { status: 500 },
+      );
+    }
+
+    // Local dev only — save to public/uploads/
     const localDir = path.join(process.cwd(), "public", "uploads", path.dirname(objectKey));
     await fs.mkdir(localDir, { recursive: true });
     const buffer = Buffer.from(await file.arrayBuffer());
